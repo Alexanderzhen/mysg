@@ -1,0 +1,20 @@
+#!name=WPS · 自动签到
+#!desc=一个模块全搞定：1) 打开 WPS App 进任务中心/福利中心自动抓取 Cookie（wps_sid，长效，抓一次长期可用）；2) 每天 10:00 自动执行签到与福利中心任务（限量爆款/签到/打卡/抽奖/会员试用/小程序打卡）；3) 策略页有「手动签到」面板，点刷新立即执行；另有「Cookie 状态」面板可随时查看是否已抓到。注意：Surge 的 JS（脚本）开关必须打开，否则抓取不会触发。
+#!author=MaYIHEI（抓取/签到脚本） / Luna（状态脚本与打包）
+#!category=签到
+
+[Script]
+WPS Cookie = type=http-request,pattern=^https://personal-act\.wps\.cn/activity-rubik/activity/page_info,requires-body=false,max-size=0,script-path=https://raw.githubusercontent.com/MaYIHEI/paperclip/refs/heads/main/app/wps/wps.cookie.js
+WPS签到 = type=cron,cronexp=0 10 * * *,timeout=120,script-path=https://raw.githubusercontent.com/MaYIHEI/paperclip/refs/heads/main/app/wps/wps.js
+WPS手动签到 = type=generic,timeout=120,script-path=https://raw.githubusercontent.com/MaYIHEI/paperclip/refs/heads/main/app/wps/wps.js
+WPS Cookie状态 = type=generic,script-path=https://raw.githubusercontent.com/Alexanderzhen/mysg/main/wps/wps_cookie_status.js
+
+[Panel]
+WPS手动签到面板 = title="WPS · 手动签到",content="点右上角刷新按钮立即执行全部任务，结果看通知",style=info,script-name=WPS手动签到
+WPS Cookie面板 = title="WPS · Cookie 状态",content="点右上角刷新按钮，查看 wps_sid 是否已抓到",style=info,script-name=WPS Cookie状态
+
+[Rule]
+DOMAIN-SUFFIX,wps.cn,DIRECT
+
+[MITM]
+hostname = %APPEND% personal-act.wps.cn
