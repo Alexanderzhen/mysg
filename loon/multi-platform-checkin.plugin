@@ -1,0 +1,52 @@
+# 多平台签到 · Surge 模块转 Loon 插件
+# 来源：https://son.zhiaon.top/m/module-30.sgmodule
+# 脚本：https://raw.githubusercontent.com/zhiaon/Modules/main/surge_scripts/multi-platform-checkin.js
+#
+# 转制说明（必读）：
+# 1. 需要 Loon 3.5.1(983) 或更高（新版 Script 语法）。
+# 2. 脚本本身不用改：它只用 $persistentStore / $httpClient / $notification / $argument（字符串）/ $done，
+#    这几个 Loon 都有；全文件 1230 行查过，没有 $network / $surge / $task / $prefs 这类 Surge 专属调用。
+# 3. Surge 的 #!arguments 参数面板在 Loon 里没有等价物：脚本读的是字符串形式的 $argument，
+#    所以参数直接写死在下面每条 script(...) 的第二个参数里，值 = 原模块默认值。
+#    想改参数（比如签到时间 08:00、关掉某个平台），直接改下面 argument 串里对应的值，
+#    改完在 Loon 里重新导入本插件即可。
+#    默认值：auto=true，time=08:00，capture=true，notify=true，retries=1，
+#    request_timeout=8，task_timeout=30，三个平台 enabled/auto=true、time=follow。
+# 4. Surge 的三个面板（总览/平台/统计）Loon 没有面板功能，对应的三条脚本已去掉；
+#    手动签到用下面 5 条 generic 脚本，在 Loon「脚本」页点运行。
+# 5. Cookie 捕获：打开贴吧 / B 站 / 值得买 App 刷一下就会自动抓，
+#    前提是 MITM 生效（证书已安装并信任，Loon 的 HTTPS 解密开关打开）。
+#    贴吧还要先用「CC管理命令」设置明确吧名清单，否则不签。
+# 6. 自动调度是每分钟检查一次，到点才签到；iOS 后台限制可能导致锁屏后延迟，不保证准点。
+# 7. 什么值得买目前暂不支持签到（原模块就是预留项），B 站仅直播每日签到。
+
+#!name = 多平台签到
+#!desc = 贴吧 / B 站直播 / 什么值得买 每日自动签到（Surge 模块转制）
+#!author = zhiaon
+#!homepage = https://github.com/zhiaon/Modules
+#!system = iOS
+#!loon_version = 3.5.1(983)
+#!date = 2026-11-26
+#!tag = 签到,工具
+
+[Script]
+cron "* * * * *" then script("https://raw.githubusercontent.com/zhiaon/Modules/main/surge_scripts/multi-platform-checkin.js", "action=schedule&auto=true&time=08:00&capture=true&notify=true&retries=1&request_timeout=8&task_timeout=30&tieba_enabled=true&tieba_auto=true&tieba_time=follow&bilibili_enabled=true&bilibili_auto=true&bilibili_time=follow&smzdm_enabled=true&smzdm_auto=true&smzdm_time=follow") with tag="CC自动调度", timeout=120
+
+generic then script("https://raw.githubusercontent.com/zhiaon/Modules/main/surge_scripts/multi-platform-checkin.js", "action=run&platform=all&auto=true&time=08:00&capture=true&notify=true&retries=1&request_timeout=8&task_timeout=30&tieba_enabled=true&tieba_auto=true&tieba_time=follow&bilibili_enabled=true&bilibili_auto=true&bilibili_time=follow&smzdm_enabled=true&smzdm_auto=true&smzdm_time=follow") with tag="CC一键签到", timeout=120
+
+generic then script("https://raw.githubusercontent.com/zhiaon/Modules/main/surge_scripts/multi-platform-checkin.js", "action=run&platform=tieba&auto=true&time=08:00&capture=true&notify=true&retries=1&request_timeout=8&task_timeout=30&tieba_enabled=true&tieba_auto=true&tieba_time=follow&bilibili_enabled=true&bilibili_auto=true&bilibili_time=follow&smzdm_enabled=true&smzdm_auto=true&smzdm_time=follow") with tag="CC贴吧签到", timeout=120
+
+generic then script("https://raw.githubusercontent.com/zhiaon/Modules/main/surge_scripts/multi-platform-checkin.js", "action=run&platform=bilibili&auto=true&time=08:00&capture=true&notify=true&retries=1&request_timeout=8&task_timeout=30&tieba_enabled=true&tieba_auto=true&tieba_time=follow&bilibili_enabled=true&bilibili_auto=true&bilibili_time=follow&smzdm_enabled=true&smzdm_auto=true&smzdm_time=follow") with tag="CCB站签到", timeout=120
+
+generic then script("https://raw.githubusercontent.com/zhiaon/Modules/main/surge_scripts/multi-platform-checkin.js", "action=run&platform=smzdm&auto=true&time=08:00&capture=true&notify=true&retries=1&request_timeout=8&task_timeout=30&tieba_enabled=true&tieba_auto=true&tieba_time=follow&bilibili_enabled=true&bilibili_auto=true&bilibili_time=follow&smzdm_enabled=true&smzdm_auto=true&smzdm_time=follow") with tag="CC值得买签到", timeout=120
+
+generic then script("https://raw.githubusercontent.com/zhiaon/Modules/main/surge_scripts/multi-platform-checkin.js", "action=command&auto=true&time=08:00&capture=true&notify=true&retries=1&request_timeout=8&task_timeout=30&tieba_enabled=true&tieba_auto=true&tieba_time=follow&bilibili_enabled=true&bilibili_auto=true&bilibili_time=follow&smzdm_enabled=true&smzdm_auto=true&smzdm_time=follow") with tag="CC管理命令", timeout=120
+
+request if ${url} ~= /^https:\/\/tieba\.baidu\.com\/(?:dc\/common\/tbs|mo\/q\/newmoindex|f(?:\?|\/|$))/ then script("https://raw.githubusercontent.com/zhiaon/Modules/main/surge_scripts/multi-platform-checkin.js", "action=capture&auto=true&time=08:00&capture=true&notify=true&retries=1&request_timeout=8&task_timeout=30&tieba_enabled=true&tieba_auto=true&tieba_time=follow&bilibili_enabled=true&bilibili_auto=true&bilibili_time=follow&smzdm_enabled=true&smzdm_auto=true&smzdm_time=follow") with tag="CC捕获贴吧", timeout=5
+
+request if ${url} ~= /^https:\/\/(?:(?:www|live)\.bilibili\.com\/(?:\?|$)|api\.bilibili\.com\/x\/web-interface\/nav|api\.live\.bilibili\.com\/xlive\/web-ucenter\/v1\/sign\/)/ then script("https://raw.githubusercontent.com/zhiaon/Modules/main/surge_scripts/multi-platform-checkin.js", "action=capture&auto=true&time=08:00&capture=true&notify=true&retries=1&request_timeout=8&task_timeout=30&tieba_enabled=true&tieba_auto=true&tieba_time=follow&bilibili_enabled=true&bilibili_auto=true&bilibili_time=follow&smzdm_enabled=true&smzdm_auto=true&smzdm_time=follow") with tag="CC捕获B站", timeout=5
+
+request if ${url} ~= /^https:\/\/zhiyou\.smzdm\.com\/(?:\?|$|user(?:\/|$))/ then script("https://raw.githubusercontent.com/zhiaon/Modules/main/surge_scripts/multi-platform-checkin.js", "action=capture&auto=true&time=08:00&capture=true&notify=true&retries=1&request_timeout=8&task_timeout=30&tieba_enabled=true&tieba_auto=true&tieba_time=follow&bilibili_enabled=true&bilibili_auto=true&bilibili_time=follow&smzdm_enabled=true&smzdm_auto=true&smzdm_time=follow") with tag="CC捕获值得买", timeout=5
+
+[MITM]
+hostname = tieba.baidu.com, www.bilibili.com, api.bilibili.com, live.bilibili.com, api.live.bilibili.com, zhiyou.smzdm.com

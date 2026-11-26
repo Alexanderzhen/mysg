@@ -1,0 +1,100 @@
+# Telegram优化Pro v2 · Surge 模块转 Loon 插件
+# 来源：https://son.zhiaon.top/m/telegram-pro-v2.sgmodule
+#
+# 转制说明（必读）：
+# 1. 原模块的 4 个参数默认值全是 true，所以 4 组规则全开；Loon 插件的 [Rule] 不能像 Surge 那样
+#    用 {{#参数}} 条件开关，「更多IP段」这个参数在原文件里根本没用到，已去掉。
+#    想关掉其中一组（比如不想屏蔽 QUIC），直接删掉下面对应小节的规则行，重新导入即可。
+# 2. 原模块的策略组「电报信息」在 Loon 插件里写不了名字——插件规则只能用 DIRECT / REJECT 系列 / PROXY，
+#    所以全部改成了 PROXY。导入后在插件详情页把 PROXY 对应的策略组选成你 Loon 里现有的电报组
+#    （没有就走你 FINAL 指的组，一般是你的国外节点组）。
+# 3. 屏蔽 QUIC 的 9 条 AND 规则放最前，尽量让 UDP 流量先撞上它再走域名分流。
+# 4. 去重：原文件里 91.108.4.0/22、149.154.160.0/20 各写了两遍，cdn-telegram.org、telesco.pe
+#    在域名段和 CDN 段重复出现，转换时只保留一份；规则总数 67 条。
+# 5. telergam.com 是原作者列表里的拼写（疑似 telegram.com 的笔误），原样保留，未擅自改。
+# 6. 注意：屏蔽 QUIC 只是让 Telegram 的 UDP 尝试快速失败、回落 TCP；如果你的 UDP 本来就通，
+#    这组规则会强制它走 TCP，下载速度可能反而下降，觉得慢就把第 3 节整段删掉。
+
+#!name = Telegram优化Pro v2
+#!desc = Telegram DC IP 直连 + CDN 域名 + 屏蔽 QUIC 强制 TCP（Surge 模块转制）
+#!author = zhiaon
+#!homepage = https://son.zhiaon.top/m/telegram-pro-v2.sgmodule
+#!system = iOS
+#!date = 2026-11-26
+#!tag = Telegram,规则
+
+[Rule]
+# ===== 屏蔽 QUIC，强制 TCP（UDP 尝试快速失败，回落 TCP）=====
+AND,((DOMAIN-SUFFIX,telegram.org),(PROTOCOL,UDP)),REJECT-NO-DROP
+AND,((DOMAIN-SUFFIX,t.me),(PROTOCOL,UDP)),REJECT-NO-DROP
+AND,((DOMAIN-SUFFIX,telegram-cdn.org),(PROTOCOL,UDP)),REJECT-NO-DROP
+AND,((DOMAIN-SUFFIX,cdn-telegram.org),(PROTOCOL,UDP)),REJECT-NO-DROP
+AND,((DOMAIN-SUFFIX,telesco.pe),(PROTOCOL,UDP)),REJECT-NO-DROP
+AND,((IP-CIDR,91.108.0.0/16),(PROTOCOL,UDP)),REJECT-NO-DROP
+AND,((IP-CIDR,149.154.160.0/20),(PROTOCOL,UDP)),REJECT-NO-DROP
+AND,((IP-CIDR,5.28.192.0/18),(PROTOCOL,UDP)),REJECT-NO-DROP
+AND,((IP-CIDR,109.239.140.0/24),(PROTOCOL,UDP)),REJECT-NO-DROP
+
+# ===== Telegram 域名（走代理）=====
+DOMAIN-SUFFIX,telegram.org,PROXY
+DOMAIN-SUFFIX,t.me,PROXY
+DOMAIN-SUFFIX,tdesktop.com,PROXY
+DOMAIN-SUFFIX,telegra.ph,PROXY
+DOMAIN-SUFFIX,telegram.dog,PROXY
+DOMAIN-SUFFIX,telegram.me,PROXY
+DOMAIN-SUFFIX,telegram.space,PROXY
+DOMAIN-SUFFIX,telesco.pe,PROXY
+DOMAIN-SUFFIX,graph.org,PROXY
+DOMAIN-SUFFIX,stel.com,PROXY
+DOMAIN-SUFFIX,comments.app,PROXY
+DOMAIN-SUFFIX,quiz.directory,PROXY
+DOMAIN-SUFFIX,telegramcdn.org,PROXY
+DOMAIN-SUFFIX,cdn-telegram.org,PROXY
+DOMAIN-SUFFIX,telergam.com,PROXY
+DOMAIN-SUFFIX,web.telegram.org,PROXY
+DOMAIN-SUFFIX,desktop.telegram.org,PROXY
+DOMAIN-SUFFIX,macos.telegram.org,PROXY
+DOMAIN-SUFFIX,ios.telegram.org,PROXY
+DOMAIN-SUFFIX,android.telegram.org,PROXY
+DOMAIN-SUFFIX,telegram-cdn.org,PROXY
+DOMAIN-SUFFIX,telegramdownload.com,PROXY
+DOMAIN-SUFFIX,usercontent.dev,PROXY
+DOMAIN-SUFFIX,mbrx.app,PROXY
+DOMAIN-SUFFIX,telega.one,PROXY
+DOMAIN-SUFFIX,tg.dev,PROXY
+DOMAIN-SUFFIX,tx.me,PROXY
+DOMAIN-SUFFIX,platao.com,PROXY
+DOMAIN-SUFFIX,telegramcdn.net,PROXY
+
+# ===== Telegram DC IP 段（走代理，no-resolve）=====
+IP-CIDR,91.108.4.0/22,PROXY,no-resolve
+IP-CIDR,91.108.8.0/22,PROXY,no-resolve
+IP-CIDR,91.108.12.0/22,PROXY,no-resolve
+IP-CIDR,91.108.16.0/22,PROXY,no-resolve
+IP-CIDR,91.108.56.0/22,PROXY,no-resolve
+IP-CIDR,91.108.58.0/23,PROXY,no-resolve
+IP-CIDR,91.108.20.0/22,PROXY,no-resolve
+IP-CIDR,91.108.36.0/23,PROXY,no-resolve
+IP-CIDR,91.108.42.0/24,PROXY,no-resolve
+IP-CIDR,91.108.56.0/23,PROXY,no-resolve
+IP-CIDR,149.154.160.0/20,PROXY,no-resolve
+IP-CIDR,149.154.164.0/22,PROXY,no-resolve
+IP-CIDR,149.154.167.0/24,PROXY,no-resolve
+IP-CIDR,149.154.168.0/22,PROXY,no-resolve
+IP-CIDR,149.154.172.0/22,PROXY,no-resolve
+IP-CIDR,149.154.175.0/24,PROXY,no-resolve
+IP-CIDR,5.28.192.0/18,PROXY,no-resolve
+IP-CIDR,109.239.140.0/24,PROXY,no-resolve
+IP-CIDR,91.105.192.0/23,PROXY,no-resolve
+IP-CIDR,91.108.13.0/24,PROXY,no-resolve
+IP-CIDR,91.108.17.0/24,PROXY,no-resolve
+IP-CIDR,91.108.21.0/24,PROXY,no-resolve
+IP-CIDR,91.108.57.0/24,PROXY,no-resolve
+IP-CIDR,91.108.61.0/24,PROXY,no-resolve
+IP-CIDR,91.108.62.0/24,PROXY,no-resolve
+IP-CIDR,91.108.63.0/24,PROXY,no-resolve
+
+# ===== Telegram ASN（走代理，no-resolve）=====
+IP-ASN,44907,PROXY,no-resolve
+IP-ASN,211157,PROXY,no-resolve
+IP-ASN,62041,PROXY,no-resolve
